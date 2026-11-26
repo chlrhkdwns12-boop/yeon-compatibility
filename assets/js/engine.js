@@ -275,8 +275,8 @@
     var lackA = OH.filter(function (o) { return A.ohCount[o] === 0; });
     var lackB = OH.filter(function (o) { return B.ohCount[o] === 0; });
     var fill = 0, fillDetail = [];
-    lackA.forEach(function (o) { if (B.ohCount[o] >= 2) { fill += 5; fillDetail.push(B.displayName + '이 ' + A.displayName + '의 ' + o + objectParticle(o) + ' 채움'); } });
-    lackB.forEach(function (o) { if (A.ohCount[o] >= 2) { fill += 5; fillDetail.push(A.displayName + '이 ' + B.displayName + '의 ' + o + objectParticle(o) + ' 채움'); } });
+    lackA.forEach(function (o) { if (B.ohCount[o] >= 2) { fill += 5; fillDetail.push(B.displayName + subjectParticle(B.displayName) + ' ' + A.displayName + '의 ' + o + objectParticle(o) + ' 채움'); } });
+    lackB.forEach(function (o) { if (A.ohCount[o] >= 2) { fill += 5; fillDetail.push(A.displayName + subjectParticle(A.displayName) + ' ' + B.displayName + '의 ' + o + objectParticle(o) + ' 채움'); } });
     fill = Math.min(fill, 10);
     add('비어 있는 기운', fillDetail.length ? fillDetail.join(' · ') : '서로의 빈 자리를 크게 채우지는 못함',
       fill, fill > 0 ? 'fill' : 'none');
@@ -322,6 +322,16 @@
 
   var OBJECT_PARTICLE = { '목': '을', '화': '를', '토': '를', '금': '을', '수': '를' };
   function objectParticle(oh) { return OBJECT_PARTICLE[oh] || '을'; }
+
+  // 주격 조사 — 이름 끝 글자의 받침에 따라 '이/가' (이름을 비워 '나·상대'로 부를 때도 자연스럽게)
+  function subjectParticle(name) {
+    var s = String(name || '');
+    if (s === '나') return '내가';
+    if (s === '너') return '네가';
+    var c = s.charCodeAt(s.length - 1);
+    if (c >= 0xAC00 && c <= 0xD7A3) return ((c - 0xAC00) % 28) ? '이' : '가';
+    return '가';
+  }
 
   function countYin(p) {
     var yin = 0, total = 0;

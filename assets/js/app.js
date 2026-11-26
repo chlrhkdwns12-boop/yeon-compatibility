@@ -699,6 +699,9 @@
             : '1930~2026년 사이 생년월일만 계산합니다.');
         return;
       }
+      // 이름을 비우면 '나·상대'로 부른다(공유 문구·근거 문장이 '이름 없음'으로 나오지 않게)
+      if (!a.name) a.name = '나';
+      if (!b.name) b.name = '상대';
       var A, B;
       try {
         A = M.pillars(a); B = M.pillars(b);
