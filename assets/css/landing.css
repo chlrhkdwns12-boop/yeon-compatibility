@@ -23,6 +23,15 @@
 .land .facts li::before{content:"✦";color:var(--gold);font-size:11px;position:absolute;left:0;top:1px;line-height:1.9}
 .land .facts b{color:var(--text);font-weight:600}
 
+/* 공유 링크로 들어온 사람에게 보이는 한 줄 */
+.share-note{
+  font-size:13px;line-height:1.65;color:#E8C892;word-break:keep-all;
+  border:1px solid rgba(232,200,146,.28);border-radius:12px;
+  background:linear-gradient(165deg,rgba(232,200,146,.09),rgba(255,255,255,.015));
+  padding:10px 14px;margin:0 0 20px;
+}
+.share-note span{color:var(--muted);font-size:12px}
+
 /* ---------- 빠른 계산 카드 ---------- */
 .quick{padding:22px}
 .quick h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:0 0 4px;word-break:keep-all}

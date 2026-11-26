@@ -652,6 +652,11 @@
     } catch (e) { /* 저장소를 막은 브라우저 */ }
     var wanted = (pre && pre.rel) || rel;
     if (wanted) selectRel(wanted);
+    var utm = null;
+    try { utm = new URLSearchParams(location.search).get('utm_source'); } catch (e) { /* 구형 브라우저 */ }
+    if ((rel || utm === 'share' || utm === 'kakao') && $('#shareNote')) {
+      $('#shareNote').classList.remove('hidden');
+    }
     if (!pre || !pre.a) return;
     fillPerson('A', pre.a);
     if (pre.b) fillPerson('B', pre.b);
