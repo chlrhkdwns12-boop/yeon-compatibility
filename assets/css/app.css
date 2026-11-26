@@ -30,6 +30,7 @@
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+#fateForm,#tools,#sample,#faq,#trust{scroll-margin-top:78px}
 body{
   margin:0;background:var(--bg);color:var(--text);
   font-family:var(--sans);font-size:16px;line-height:1.65;
