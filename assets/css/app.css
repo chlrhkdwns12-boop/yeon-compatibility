@@ -207,7 +207,7 @@ h1 em::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:1px;b
 }
 #shareCanvas{display:block;width:100%;height:auto}
 .share h3{font-family:var(--serif);font-size:18px;margin:0 0 8px}
-.share p{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.share p{color:var(--muted);font-size:13.5px;margin:0 0 14px;max-width:56ch;word-break:keep-all}
 .share-actions{display:flex;flex-wrap:wrap;gap:8px}
 .card-styles{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
 .card-style{
