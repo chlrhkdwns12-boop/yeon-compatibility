@@ -208,6 +208,18 @@ h1 em::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:1px;b
 .share h3{font-family:var(--serif);font-size:18px;margin:0 0 8px}
 .share p{color:var(--muted);font-size:13.5px;margin:0 0 14px}
 .share-actions{display:flex;flex-wrap:wrap;gap:8px}
+.card-styles{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.card-style{
+  appearance:none;cursor:pointer;font-size:12.5px;color:var(--muted);letter-spacing:.02em;
+  background:rgba(255,255,255,.04);border:1px solid var(--line-soft);
+  border-radius:999px;padding:7px 14px;transition:.15s;
+}
+.card-style:hover{border-color:var(--line);color:var(--text)}
+.card-style[aria-pressed="true"]{
+  color:#1E1A2B;border-color:transparent;font-weight:600;
+  background:linear-gradient(135deg,#F2D7A6,#C79A55);
+  box-shadow:0 4px 14px rgba(199,154,85,.28);
+}
 
 /* ---------- 원국 표 ---------- */
 .pillars{display:grid;gap:10px;margin-top:6px}
@@ -303,6 +315,27 @@ h1 em::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:1px;b
 .tile.up{background:linear-gradient(160deg,rgba(232,200,146,.22),rgba(232,200,146,.06));border-color:var(--gold);font-size:26px}
 .tile.done{background:rgba(143,217,168,.14);border-color:rgba(143,217,168,.5);cursor:default;opacity:.85}
 .puzzle-bar{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:12.5px;color:var(--muted)}
+
+/* ---------- 자주 묻는 질문 ---------- */
+.faq{padding:64px 0 10px}
+.faq-list{display:grid;gap:10px;max-width:780px}
+.qa{
+  border:1px solid var(--line-soft);border-radius:14px;
+  background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+  padding:0 18px;
+}
+.qa summary{
+  cursor:pointer;list-style:none;padding:16px 26px 16px 0;position:relative;
+  font-family:var(--serif);font-size:15.5px;color:var(--text);
+}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:"＋";position:absolute;right:0;top:14px;color:var(--gold);font-size:14px}
+.qa[open] summary::after{content:"－"}
+.qa[open]{border-color:var(--line);background:linear-gradient(165deg,rgba(232,200,146,.07),rgba(255,255,255,.015))}
+.qa p{margin:0 0 16px;font-size:13.8px;line-height:1.8;color:var(--muted);max-width:64ch;word-break:keep-all}
+.qa a{color:var(--gold);border-bottom:1px solid rgba(232,200,146,.35)}
+.faq-more{margin:18px 0 0;font-size:12.5px;color:var(--muted-2)}
+.faq-more a{color:var(--gold)}
 
 /* ---------- 샘플 ---------- */
 .sample-sec{padding:70px 0 40px}

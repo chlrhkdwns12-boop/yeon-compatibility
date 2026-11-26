@@ -261,8 +261,8 @@
       var pt = (f.points > 0 ? '+' : '') + f.points;
       return '<div class="factor"><div><b>' + esc(f.label) + '</b><span class="d">' + esc(f.detail) + '</span></div>'
         + '<div class="pt ' + cls + '">' + pt + '</div></div>';
-    }).join('') + '<div class="factor"><div><b>기본점 55</b><span class="d">사주가 만나는 자리를 중립(55)에서 가감</span></div><div class="pt zero">'
-      + (compat.score - 55 > 0 ? '+' : '') + (compat.score - 55) + '</div></div>';
+    }).join('') + '<div class="factor"><div><b>기본점 58</b><span class="d">사주가 만나는 자리를 중립(58)에서 가감</span></div><div class="pt zero">'
+      + (compat.score - 58 > 0 ? '+' : '') + (compat.score - 58) + '</div></div>';
 
     // 잠금 카드 (2~8장)
     var grid = $('#lockedGrid');
@@ -291,54 +291,119 @@
     return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
   }
 
+  /* 공유 카드 디자인 3종 — 같은 계산 결과를 '우주빛 / 한지 / 먹빛'으로 다르게 담는다 */
+  var CARD_STYLES = {
+    cosmic: {
+      bg: function (ctx, W, H, rnd) {
+        var g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#0B0918'); g.addColorStop(.45, '#151030'); g.addColorStop(1, '#0A0816');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        var rg = ctx.createRadialGradient(W * .78, H * .12, 0, W * .78, H * .12, W * .9);
+        rg.addColorStop(0, 'rgba(150,120,255,.35)'); rg.addColorStop(1, 'rgba(150,120,255,0)');
+        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+        var rg2 = ctx.createRadialGradient(W * .2, H * .95, 0, W * .2, H * .95, W * .8);
+        rg2.addColorStop(0, 'rgba(199,154,85,.22)'); rg2.addColorStop(1, 'rgba(199,154,85,0)');
+        ctx.fillStyle = rg2; ctx.fillRect(0, 0, W, H);
+        for (var i = 0; i < 90; i++) {
+          var x = rnd() * W, y = rnd() * H, r = rnd() * 1.9 + .5;
+          ctx.fillStyle = 'rgba(255,255,255,' + (rnd() * .5 + .25).toFixed(2) + ')';
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+      },
+      frame: 'rgba(232,200,146,.45)', frame2: 'rgba(232,200,146,.16)',
+      seal: '#E8C892', name: '#F5F0E8', sub: 'rgba(245,240,232,.55)',
+      track: 'rgba(255,255,255,.12)', ring1: '#F2D7A6', ring2: '#C79A55',
+      score: '#E8C892', summary: 'rgba(245,240,232,.82)', kw: 'rgba(232,200,146,.9)',
+      foot: 'rgba(245,240,232,.45)', foot2: 'rgba(245,240,232,.3)'
+    },
+    hanji: {
+      bg: function (ctx, W, H, rnd) {
+        var g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#FAF4E6'); g.addColorStop(.55, '#F3E7D0'); g.addColorStop(1, '#EADBBC');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        var rg = ctx.createRadialGradient(W * .5, H * .04, 0, W * .5, H * .04, W * .92);
+        rg.addColorStop(0, 'rgba(255,255,255,.6)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+        var rg2 = ctx.createRadialGradient(W * .5, H * 1.02, 0, W * .5, H * 1.02, W * .8);
+        rg2.addColorStop(0, 'rgba(198,158,96,.2)'); rg2.addColorStop(1, 'rgba(198,158,96,0)');
+        ctx.fillStyle = rg2; ctx.fillRect(0, 0, W, H);
+        // 한지 섬유결 — 짧고 옅은 결을 흩뿌린다
+        for (var i = 0; i < 300; i++) {
+          var x = rnd() * W, y = rnd() * H;
+          ctx.fillStyle = 'rgba(140,108,64,' + (rnd() * .07 + .02).toFixed(3) + ')';
+          ctx.fillRect(x, y, rnd() * 28 + 4, .9);
+        }
+      },
+      frame: 'rgba(150,112,58,.52)', frame2: 'rgba(150,112,58,.24)',
+      seal: '#A8792F', name: '#2B2318', sub: 'rgba(43,35,24,.58)',
+      track: 'rgba(43,35,24,.13)', ring1: '#C08A3C', ring2: '#8A5F22',
+      score: '#8A5F22', summary: 'rgba(43,35,24,.8)', kw: '#8A5F22',
+      foot: 'rgba(43,35,24,.5)', foot2: 'rgba(43,35,24,.35)'
+    },
+    ink: {
+      bg: function (ctx, W, H, rnd) {
+        ctx.fillStyle = '#0A0A0C'; ctx.fillRect(0, 0, W, H);
+        var rg = ctx.createRadialGradient(W * .5, H * .34, 0, W * .5, H * .34, W * .78);
+        rg.addColorStop(0, 'rgba(255,252,244,.07)'); rg.addColorStop(1, 'rgba(255,252,244,0)');
+        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+        // 먹의 붓결 — 아주 옅은 세로 결
+        for (var i = 0; i < 14; i++) {
+          var x = W * .1 + rnd() * W * .8;
+          ctx.strokeStyle = 'rgba(255,252,244,' + (rnd() * .03 + .01).toFixed(3) + ')';
+          ctx.lineWidth = rnd() * 3 + 1;
+          ctx.beginPath(); ctx.moveTo(x, H * .06); ctx.lineTo(x + (rnd() - .5) * 16, H * .94); ctx.stroke();
+        }
+      },
+      frame: 'rgba(239,231,214,.5)', frame2: 'rgba(239,231,214,.14)',
+      seal: '#F4F1EA', name: '#F4F1EA', sub: 'rgba(244,241,234,.5)',
+      track: 'rgba(255,255,255,.1)', ring1: '#EDE5D4', ring2: '#988C74',
+      score: '#F4F1EA', summary: 'rgba(244,241,234,.76)', kw: 'rgba(233,226,210,.82)',
+      foot: 'rgba(244,241,234,.42)', foot2: 'rgba(244,241,234,.26)'
+    }
+  };
+  var cardStyle = 'cosmic';
+  try {
+    var savedStyle = localStorage.getItem('yeon.cardStyle');
+    if (savedStyle && CARD_STYLES[savedStyle]) cardStyle = savedStyle;
+  } catch (e) { /* 저장소를 막은 브라우저는 기본값으로 */ }
+
   function drawShareCard(compat, report) {
     var cv = $('#shareCanvas');
     var ctx = cv.getContext('2d');
     var W = cv.width, H = cv.height;
     var rnd = seeded(compat.seed || 7);
+    var P = CARD_STYLES[cardStyle] || CARD_STYLES.cosmic;
 
-    var g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, '#0B0918'); g.addColorStop(.45, '#151030'); g.addColorStop(1, '#0A0816');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-    var rg = ctx.createRadialGradient(W * .78, H * .12, 0, W * .78, H * .12, W * .9);
-    rg.addColorStop(0, 'rgba(150,120,255,.35)'); rg.addColorStop(1, 'rgba(150,120,255,0)');
-    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-    var rg2 = ctx.createRadialGradient(W * .2, H * .95, 0, W * .2, H * .95, W * .8);
-    rg2.addColorStop(0, 'rgba(199,154,85,.22)'); rg2.addColorStop(1, 'rgba(199,154,85,0)');
-    ctx.fillStyle = rg2; ctx.fillRect(0, 0, W, H);
-
-    // stars
-    for (var i = 0; i < 90; i++) {
-      var x = rnd() * W, y = rnd() * H, r = rnd() * 1.9 + .5;
-      ctx.fillStyle = 'rgba(255,255,255,' + (rnd() * .5 + .25).toFixed(2) + ')';
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    }
+    ctx.clearRect(0, 0, W, H);
+    P.bg(ctx, W, H, rnd);
 
     // frame
-    ctx.strokeStyle = 'rgba(232,200,146,.45)'; ctx.lineWidth = 2;
+    ctx.strokeStyle = P.frame; ctx.lineWidth = 2;
     ctx.strokeRect(54, 54, W - 108, H - 108);
-    ctx.strokeStyle = 'rgba(232,200,146,.16)'; ctx.lineWidth = 1;
+    ctx.strokeStyle = P.frame2; ctx.lineWidth = 1;
     ctx.strokeRect(72, 72, W - 144, H - 144);
 
     var serif = '"Noto Serif CJK KR","Noto Serif KR",serif';
     var sans = '"Noto Sans CJK KR","Noto Sans KR",sans-serif';
     ctx.textAlign = 'center';
 
-    ctx.fillStyle = '#E8C892';
+    ctx.fillStyle = P.seal;
     ctx.font = '600 64px ' + serif;
     ctx.fillText('緣', W / 2, 210);
     ctx.font = '500 24px ' + sans;
-    ctx.fillStyle = 'rgba(232,200,146,.75)';
+    ctx.fillStyle = P.sub;
     ctx.fillText('T W O   P E O P L E ’ S   F A T E', W / 2, 262);
 
+    ctx.strokeStyle = P.frame2; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(W / 2 - 92, 292); ctx.lineTo(W / 2 + 92, 292); ctx.stroke();
+
     // names
-    ctx.fillStyle = '#F5F0E8';
+    ctx.fillStyle = P.name;
     ctx.font = '600 62px ' + serif;
     var names = compat.A.displayName + '  ·  ' + compat.B.displayName;
     ctx.fillText(names, W / 2, 400);
 
-    ctx.fillStyle = 'rgba(245,240,232,.55)';
+    ctx.fillStyle = P.sub;
     ctx.font = '400 24px ' + sans;
     var relTxt = state.relLabel || state.rel;
     ctx.fillText(relTxt.indexOf('궁합') >= 0 ? relTxt : relTxt + ' 궁합', W / 2, 448);
@@ -346,34 +411,34 @@
     // score circle
     var cx = W / 2, cy = 680, r = 150;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 10; ctx.stroke();
+    ctx.strokeStyle = P.track; ctx.lineWidth = 10; ctx.stroke();
     ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (compat.score / 100));
     var grad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
-    grad.addColorStop(0, '#F2D7A6'); grad.addColorStop(1, '#C79A55');
+    grad.addColorStop(0, P.ring1); grad.addColorStop(1, P.ring2);
     ctx.strokeStyle = grad; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.stroke();
 
-    ctx.fillStyle = '#E8C892'; ctx.font = '600 108px ' + serif;
+    ctx.fillStyle = P.score; ctx.font = '600 108px ' + serif;
     ctx.fillText(String(compat.score), cx, cy + 26);
-    ctx.fillStyle = 'rgba(245,240,232,.5)'; ctx.font = '400 22px ' + sans;
+    ctx.fillStyle = P.sub; ctx.font = '400 22px ' + sans;
     ctx.fillText('of 100', cx, cy + 70);
 
-    ctx.fillStyle = '#F5F0E8'; ctx.font = '600 36px ' + serif;
+    ctx.fillStyle = P.name; ctx.font = '600 36px ' + serif;
     ctx.fillText(compat.grade, cx, cy + 220);
 
     // summary (wrap)
-    ctx.fillStyle = 'rgba(245,240,232,.82)'; ctx.font = '400 27px ' + sans;
+    ctx.fillStyle = P.summary; ctx.font = '400 27px ' + sans;
     wrapText(ctx, report.summary, W / 2, cy + 278, W - 260, 42);
 
     // keywords
     ctx.font = '400 21px ' + sans;
     var kwY = H - 250;
-    ctx.fillStyle = 'rgba(232,200,146,.9)';
+    ctx.fillStyle = P.kw;
     ctx.fillText(report.keywords.join('   ·   '), W / 2, kwY);
 
-    ctx.fillStyle = 'rgba(245,240,232,.45)'; ctx.font = '400 20px ' + sans;
+    ctx.fillStyle = P.foot; ctx.font = '400 20px ' + sans;
     ctx.fillText('연 · 두 사람 인연 읽기', W / 2, H - 160);
     ctx.font = '400 18px ' + sans;
-    ctx.fillStyle = 'rgba(245,240,232,.3)';
+    ctx.fillStyle = P.foot2;
     ctx.fillText('무료 미리보기 · 첫 장', W / 2, H - 126);
   }
 
@@ -595,7 +660,7 @@
     });
 
     $('#editBtn').addEventListener('click', function () {
-      document.getElementById('read').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('fateForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
       $('#aDate').focus();
     });
 
@@ -623,6 +688,22 @@
     });
 
     $('#copyLink').addEventListener('click', function () { copyText(location.href); });
+
+    // 공유 카드 디자인 선택 (우주빛 / 한지 / 먹빛) — 고른 디자인은 브라우저에 기억
+    var csBox = $('#cardStyles');
+    if (csBox) {
+      $$('.card-style', csBox).forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-style') === cardStyle ? 'true' : 'false');
+        b.addEventListener('click', function () {
+          cardStyle = b.getAttribute('data-style');
+          $$('.card-style', csBox).forEach(function (x) {
+            x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+          });
+          try { localStorage.setItem('yeon.cardStyle', cardStyle); } catch (e) { /* 저장소를 막은 브라우저 */ }
+          if (state.compat && state.report) drawShareCard(state.compat, state.report);
+        });
+      });
+    }
 
     $('#buyBtn').addEventListener('click', function () {
       if (CFG.kmongUrl) {
