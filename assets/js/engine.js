@@ -43,10 +43,11 @@
     var D = root.LUNAR_DATA;
     if (!D || !D[ly]) return null;
     var info = D[ly];
+    // 윤달은 같은 달 다음에 온다(6월 → 윤6월 → 7월). 배열 순서 = 월 길이 순서.
     var months = [], i;
     for (i = 1; i <= 12; i++) {
-      if (info.leap === i) months.push({ m: i, leap: true });
       months.push({ m: i, leap: false });
+      if (info.leap === i) months.push({ m: i, leap: true });
     }
     var idx = -1;
     for (i = 0; i < months.length; i++) {

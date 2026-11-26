@@ -607,6 +607,61 @@
     setTimeout(initPuzzle, 4000);
   }
 
+  /* ---------------- 공유 링크 (상대도 바로 자기 궁합을 볼 수 있게) ---------------- */
+  function inviteURL() {
+    var base = location.origin + location.pathname;
+    var out = base + '?rel=' + encodeURIComponent(state.rel) + '&utm_source=share&utm_medium=copy';
+    return out + '#fateForm';
+  }
+
+  function shareMessage() {
+    var c = state.compat, r = state.report;
+    if (!c || !r) return '두 사람의 인연을 여덟 장으로 읽어 드립니다. 첫 장은 무료입니다.\n' + inviteURL();
+    return c.A.displayName + '·' + c.B.displayName + ' ' + (state.relLabel || state.rel) + ' '
+      + c.score + '점 · ' + c.grade + '\n' + r.summary
+      + '\n연(緣)에서 만세력으로 계산해 봤어. 너도 해볼래?\n' + inviteURL();
+  }
+
+  /* ---------------- 랜딩 페이지에서 넘어온 입력 이어받기 ---------------- */
+  function selectRel(key) {
+    var box = $('#relChips');
+    if (!box || !key) return;
+    var btn = $$('.rel', box).filter(function (b) { return b.getAttribute('data-rel') === key; })[0];
+    if (btn) { btn.click(); return; }
+    // 테마 목록에 없으면(=그 주제가 아직 없으면) 기본 관계로 둔다
+  }
+
+  function fillPerson(k, p) {
+    var key = k.toLowerCase();
+    if (!p) return;
+    var name = $('#' + key + 'Name'), date = $('#' + key + 'Date');
+    var cal = $('#' + key + 'Cal'), leap = $('#' + key + 'Leap'), noTime = $('#' + key + 'NoTime');
+    if (name) name.value = p.name || '';
+    if (date) date.value = p.y + '-' + pad2(p.m) + '-' + pad2(p.d);
+    if (cal) { cal.value = p.calendar === 'lunar' ? 'lunar' : 'solar'; cal.dispatchEvent(new Event('change')); }
+    if (leap) leap.checked = !!p.leap && p.calendar === 'lunar';
+    if (noTime) { noTime.checked = true; noTime.dispatchEvent(new Event('change')); }
+  }
+
+  function applyIncoming() {
+    var rel = null, pre = null;
+    try { rel = new URLSearchParams(location.search).get('rel'); } catch (e) { /* 구형 브라우저 */ }
+    try {
+      pre = JSON.parse(sessionStorage.getItem('yeon.prefill') || 'null');
+      sessionStorage.removeItem('yeon.prefill');
+    } catch (e) { /* 저장소를 막은 브라우저 */ }
+    var wanted = (pre && pre.rel) || rel;
+    if (wanted) selectRel(wanted);
+    if (!pre || !pre.a) return;
+    fillPerson('A', pre.a);
+    if (pre.b) fillPerson('B', pre.b);
+    var f = $('#fateForm');
+    if (f) {
+      if (f.requestSubmit) f.requestSubmit();
+      else f.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+  }
+
   /* ---------------- 설정 반영 (가격·크몽 주소) ---------------- */
   function syncConfig() {
     var pt = $('#priceTag');
@@ -683,11 +738,13 @@
             return;
           }
         }
-        copyText(location.href);
+        copyText(shareMessage(), '공유 문구를 복사했습니다');
       }, 'image/png');
     });
 
-    $('#copyLink').addEventListener('click', function () { copyText(location.href); });
+    $('#copyLink').addEventListener('click', function () { copyText(inviteURL(), '상대도 바로 자기 궁합을 볼 수 있는 링크를 복사했습니다'); });
+    var cm = $('#copyMsg');
+    if (cm) cm.addEventListener('click', function () { copyText(shareMessage(), '공유 문구를 복사했습니다'); });
 
     // 공유 카드 디자인 선택 (우주빛 / 한지 / 먹빛) — 고른 디자인은 브라우저에 기억
     var csBox = $('#cardStyles');
@@ -723,6 +780,7 @@
 
     $('#ohBtn').addEventListener('click', computeToday);
     initPuzzle();
+    applyIncoming();
 
     // 스크롤 등장
     if ('IntersectionObserver' in window) {
@@ -733,9 +791,10 @@
     }
   }
 
-  function copyText(t) {
+  function copyText(t, okMsg) {
+    var done = function () { toast(okMsg || '링크를 복사했습니다'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(t).then(function () { toast('링크를 복사했습니다'); },
+      navigator.clipboard.writeText(t).then(done,
         function () { toast('복사할 수 없습니다. 주소창의 링크를 복사해 주세요.'); });
     } else { toast('주소창의 링크를 복사해 주세요.'); }
   }
@@ -767,7 +826,10 @@
       var A = M.pillars(a), B = M.pillars(b);
       return { compat: M.compat(A, B), report: R.build(M.compat(A, B), rel || '연인', {}) };
     },
-    engine: M
+    engine: M,
+    applyIncoming: applyIncoming,
+    inviteURL: inviteURL,
+    shareMessage: shareMessage
   };
 
   var bound = false;
