@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chlrhkdwns12-boop.github.io/yeon-compatibility/sitemap.xml

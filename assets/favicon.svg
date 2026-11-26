@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0B0918"/>
+  <rect x="4" y="4" width="56" height="56" rx="10" fill="none" stroke="#C79A55" stroke-opacity=".55"/>
+  <text x="32" y="45" font-family="'Noto Serif CJK KR',serif" font-size="34" font-weight="600" fill="#E8C892" text-anchor="middle">緣</text>
+</svg>
