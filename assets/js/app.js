@@ -516,6 +516,87 @@
     $('#ohOut').classList.add('show');
   }
 
+  /* ---------------- 미니도구 3: 오늘의 인연 한 줄 ---------------- */
+  var DAILY_PAIR = {
+    hap: '오늘 두 사람 사이에는 말하지 않아도 통하는 공기가 있습니다.',
+    same: '오늘 두 사람은 같은 결로 흐릅니다. 편하지만 양보가 관건입니다.',
+    saeng: '오늘은 한 사람이 다른 사람을 살리는 흐름이 또렷합니다.',
+    geuk: '오늘은 서로 다른 결이 부딪히기 쉬운 날입니다.'
+  };
+
+  function toneOfKey(myOH, tOH) {
+    var order = ['목', '화', '토', '금', '수'];
+    var mi = order.indexOf(myOH), ti = order.indexOf(tOH);
+    if (mi === ti) return 'same';
+    if (order[(mi + 1) % 5] === tOH) return 'saengOut';
+    if (order[(ti + 1) % 5] === myOH) return 'saeng';
+    if (order[(mi + 2) % 5] === tOH) return 'geukIn';
+    return 'geuk';
+  }
+
+  function pairAdvice(tA, tB) {
+    if (tA === tB) return '오늘은 두 사람의 온도가 같습니다. 함께 정한 일은 그대로 밀고 나가기 좋습니다.';
+    var saeng = (tA === 'saeng' || tB === 'saeng');
+    var geuk = (tA === 'geuk' || tB === 'geuk');
+    if (saeng && geuk) return '한 사람은 눌리고 한 사람은 살아나는 날입니다. 먼저 말을 거는 쪽이 오늘 분위기를 바꿉니다.';
+    if (geuk) return '한 사람이 눌리는 날이라, 오늘은 큰 결정을 미루고 밥이라도 같이 하는 편이 낫습니다.';
+    if (tA === 'saengOut' || tB === 'saengOut') return '한 사람이 내어주는 날입니다. 받는 쪽이 먼저 고맙다고 말해 주면 오래 갑니다.';
+    return '한 사람은 흐름이 열리고 다른 사람은 자기 일을 정리하기 좋은 날입니다. 각자 할 일을 먼저 끝내면 저녁이 편합니다.';
+  }
+
+  var DAILY_COLOR = { 목: '푸른색', 화: '붉은색', 토: '노란색', 금: '흰색', 수: '검은색' };
+  var DAILY_NUM = { 목: '3 · 8', 화: '2 · 7', 토: '5 · 10', 금: '4 · 9', 수: '1 · 6' };
+
+  // 두 사람의 생일과 기준 날짜(없으면 오늘)로 오늘의 인연 한 줄을 만든다. 난수 없음.
+  function dailyLine(a, b, dateStr) {
+    var A = M.pillars({ name: '', y: a.y, m: a.m, d: a.d, hour: null, calendar: 'solar' });
+    var B = M.pillars({ name: '', y: b.y, m: b.m, d: b.d, hour: null, calendar: 'solar' });
+    var d = new Date();
+    if (dateStr) {
+      var q = parseDate(dateStr);
+      if (q) d = new Date(q[0], q[1] - 1, q[2]);
+    }
+    var today = M.todayPillar(d);
+    var tA = toneOfKey(A.ilganOH, today.stemOH);
+    var tB = toneOfKey(B.ilganOH, today.stemOH);
+    var pairType = (M.compat(A, B).key.stem || {}).type || 'same';
+    var dateLabel = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    var chips = [
+      '오늘 일진 ' + today.label + '(' + today.stemOH + ')',
+      '한 사람 ' + A.ilgan + '(' + A.ilganOH + ') · ' + TODAY_ADVICE[tA].tone,
+      '다른 사람 ' + B.ilgan + '(' + B.ilganOH + ') · ' + TODAY_ADVICE[tB].tone,
+      '오늘의 색 ' + DAILY_COLOR[today.stemOH] + ' · 숫자 ' + DAILY_NUM[today.stemOH]
+    ];
+    var big = DAILY_PAIR[pairType] || DAILY_PAIR.same;
+    var sub = pairAdvice(tA, tB);
+    return {
+      date: dateLabel, today: today.label, big: big, sub: sub, chips: chips,
+      text: '오늘의 인연 한 줄 · ' + dateLabel + '\n' + big + '\n' + sub + '\n' + chips.join(' · ')
+        + '\n연(緣) — 두 사람의 인연 읽기'
+    };
+  }
+
+  function computeDaily() {
+    var a = parseDate($('#dyDateA').value), b = parseDate($('#dyDateB').value);
+    if (!a || !b) {
+      toast('두 사람의 생년월일을 1990-05-05 형식으로 넣어 주세요');
+      return;
+    }
+    var out;
+    try {
+      out = dailyLine({ y: a[0], m: a[1], d: a[2] }, { y: b[0], m: b[1], d: b[2] });
+    } catch (err) {
+      toast('날짜를 확인해 주세요. 1930~2026년 생년월일을 계산합니다');
+      return;
+    }
+    $('#dyBig').textContent = out.big;
+    $('#dySub').textContent = out.sub;
+    $('#dyChips').innerHTML = out.chips.map(function (t) {
+      return '<span style="font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--gold);background:rgba(232,200,146,.06)">' + esc(t) + '</span>';
+    }).join('');
+    $('#dyOut').classList.add('show');
+  }
+
   /* ---------------- 미니도구 2: 오행 짝 맞추기 ---------------- */
   var puzzle = { tiles: [], open: [], done: 0, left: 60, timer: null, started: false };
 
@@ -684,7 +765,7 @@
     syncConfig();
     renderRelChips();
     bindPerson('A'); bindPerson('B');
-    ['#aDate', '#bDate', '#ohDate', '#ohToday'].forEach(function (sel) { bindDateInput($(sel)); });
+    ['#aDate', '#bDate', '#ohDate', '#ohToday', '#dyDateA', '#dyDateB'].forEach(function (sel) { bindDateInput($(sel)); });
     $('#ohToday').value = todayISO();
 
     $('#fateForm').addEventListener('submit', function (e) {
@@ -787,6 +868,16 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSample(); });
 
     $('#ohBtn').addEventListener('click', computeToday);
+    $('#dyBtn').addEventListener('click', computeDaily);
+    $('#dyCopy').addEventListener('click', function () {
+      var a = parseDate($('#dyDateA').value), b = parseDate($('#dyDateB').value);
+      if (!$('#dyOut').classList.contains('show') || !a || !b) {
+        toast('먼저 두 사람의 생일을 넣고 한 줄을 만들어 주세요');
+        return;
+      }
+      var out = dailyLine({ y: a[0], m: a[1], d: a[2] }, { y: b[0], m: b[1], d: b[2] });
+      copyText(out.text, '오늘의 문구를 복사했습니다');
+    });
     initPuzzle();
     applyIncoming();
 
@@ -837,7 +928,8 @@
     engine: M,
     applyIncoming: applyIncoming,
     inviteURL: inviteURL,
-    shareMessage: shareMessage
+    shareMessage: shareMessage,
+    dailyLine: dailyLine
   };
 
   var bound = false;
